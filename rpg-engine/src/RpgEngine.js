@@ -22,6 +22,11 @@ export class RpgEngine extends LitElement {
         margin: 0 auto;
         text-align: center;
       }
+
+      .game {
+        cursor: url(../assets/light-green-tile.svg), auto;
+      }
+      
     `;
   }
 
@@ -36,7 +41,6 @@ export class RpgEngine extends LitElement {
     this.init();
   }
 
-
   init() {
     this.ctx = null;
     this.gameMap = [];
@@ -45,6 +49,10 @@ export class RpgEngine extends LitElement {
     this.numberOfRows = this.mapHeight / this.tileHeight;
     this.numberOfColumns = this.mapWidth / this.tileWidth;
     this.generateGameMap();
+    const canvas = this.shadowRoot.querySelector('canvas')
+    canvas.addEventListener('mousedown', (e) => {
+      this.onCanvasClick(canvas, e)
+    })
     window.onload = () => {
       this.ctx = this.shadowRoot.getElementById('game').getContext("2d");
       requestAnimationFrame(this.drawGame);
@@ -98,6 +106,15 @@ export class RpgEngine extends LitElement {
     //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     // ];
+  }
+
+  onCanvasClick = (canvas, event) => {
+    const rect = canvas.getBoundingClientRect()
+    const x = Math.floor((event.clientX - rect.left) / this.tileWidth);
+    const y = Math.floor((event.clientY - rect.top) / this.tileHeight);
+    console.log("x: " + x + " y: " + y)
+    this.gameMap[x+y*this.numberOfColumns] = 1;
+    this.drawGame();
   }
 
   render() {
