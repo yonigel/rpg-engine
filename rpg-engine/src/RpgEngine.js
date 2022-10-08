@@ -8,6 +8,7 @@ export class RpgEngine extends LitElement {
       mapHeight: { type: Number } = 400,
       mapWidth: { type: Number } = 400,
       isEditMode: { type: Boolean },
+      selectedEditTile: {type: String}
     };
   }
 
@@ -24,7 +25,7 @@ export class RpgEngine extends LitElement {
       }
 
       .game {
-        cursor: url(../assets/light-green-tile.svg), auto;
+        /* cursor: url(../assets/light-green-tile.svg), auto; */
       }
       
     `;
@@ -35,6 +36,10 @@ export class RpgEngine extends LitElement {
     this.mapHeight = 800;
     this.mapWidth = 800;
     this.isEditMode = true;
+    this.tileMap = {
+      0: 'edit-mode-tile',
+      1: 'light-green-tile'
+    }
   }
 
   firstUpdated(changedProperties) {
@@ -63,7 +68,7 @@ export class RpgEngine extends LitElement {
   getTileByCellType(cellType) {
     switch(cellType) {
       case 0:
-        return this.shadowRoot.getElementById('test');
+        return this.shadowRoot.getElementById('edit-mode-tile');
       case 1:
         return this.shadowRoot.getElementById('light-green-tile');
     }
@@ -94,34 +99,33 @@ export class RpgEngine extends LitElement {
     for (let i=0; i<totalTiles; i++) {
       this.gameMap.push(0);
     }
-    // this.gameMap = [
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    // ];
   }
 
   onCanvasClick = (canvas, event) => {
+    if (!this.selectedEditTile) {
+      return;
+    }
     const rect = canvas.getBoundingClientRect()
     const x = Math.floor((event.clientX - rect.left) / this.tileWidth);
     const y = Math.floor((event.clientY - rect.top) / this.tileHeight);
     console.log("x: " + x + " y: " + y)
-    this.gameMap[x+y*this.numberOfColumns] = 1;
+    const result = Object.keys(this.tileMap).find(tileType => this.tileMap[tileType] === this.selectedEditTile);
+    this.gameMap[x+y*this.numberOfColumns] = parseInt(result);
     this.drawGame();
+  }
+
+  onEditTileSelected(e) {
+    console.log(e.target.id);
+    const test = this.shadowRoot.getElementById('game');
+    test.style.cursor = `url(../assets/${e.target.id}.svg), auto`
+    this.selectedEditTile = e.target.id;
   }
 
   render() {
     return html`
       <main>
-        <img id="test" width="40" height="40" src="../assets/edit-mode-tile.svg" style="opacity: 1" />
-        <img id="light-green-tile" width="40" height="40" src="../assets/light-green-tile.svg" style="opacity: 1" />
+        <img id="edit-mode-tile" @click=${this.onEditTileSelected} width="40" height="40" src="../assets/edit-mode-tile.svg" style="opacity: 1" />
+        <img @click=${this.onEditTileSelected} id="light-green-tile" width="40" height="40" src="../assets/light-green-tile.svg" style="opacity: 1" />
         <canvas id="game" class="game" width="${this.mapWidth}" height="${this.mapHeight}"></canvas>
       </main>
     `;
